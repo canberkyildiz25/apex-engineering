@@ -46,7 +46,7 @@ export default function About() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="font-display font-900 text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight"
           >
-            BUILT BY<br /><span className="text-gradient-cyan">ENGINEERS,</span><br />FOR ENGINEERS.
+            BUILT BY<br /><span className="text-gradient-cyan">AN ENGINEER,</span><br />FOR ENGINEERS.
           </motion.h1>
         </div>
       </section>
