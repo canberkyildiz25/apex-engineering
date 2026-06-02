@@ -55,19 +55,19 @@ function CylinderUnit({ index, total, crankAngleOffset }) {
       {/* Cylinder block */}
       <mesh position-y={0.6} castShadow>
         <cylinderGeometry args={[0.24, 0.26, 1.1, 24]} />
-        <meshStandardMaterial color="#0d1a25" metalness={0.95} roughness={0.1} />
+        <meshStandardMaterial color="#2a4a5a" metalness={0.85} roughness={0.2} />
       </mesh>
 
       {/* Cylinder liner (inner) */}
       <mesh position-y={0.6}>
         <cylinderGeometry args={[0.19, 0.19, 1.0, 24, 1, true]} />
-        <meshStandardMaterial color="#162535" metalness={0.98} roughness={0.05} side={THREE.BackSide} />
+        <meshStandardMaterial color="#1e3a4a" metalness={0.9} roughness={0.15} side={THREE.BackSide} />
       </mesh>
 
       {/* Cylinder head */}
       <mesh position-y={1.22} castShadow>
         <cylinderGeometry args={[0.28, 0.26, 0.14, 24]} />
-        <meshStandardMaterial color="#0a1520" metalness={0.96} roughness={0.08} />
+        <meshStandardMaterial color="#1e3550" metalness={0.88} roughness={0.15} />
       </mesh>
 
       {/* Spark plug */}
@@ -82,7 +82,7 @@ function CylinderUnit({ index, total, crankAngleOffset }) {
       <group ref={pistonRef} position-y={0.35}>
         <mesh castShadow>
           <cylinderGeometry args={[0.185, 0.185, 0.22, 24]} />
-          <meshStandardMaterial color="#1a2e40" metalness={0.97} roughness={0.06} />
+          <meshStandardMaterial color="#3a5a6a" metalness={0.85} roughness={0.15} />
         </mesh>
         {/* Piston rings */}
         {[-0.06, 0, 0.06].map((dy, i) => (
@@ -101,7 +101,7 @@ function CylinderUnit({ index, total, crankAngleOffset }) {
       {/* Connecting rod */}
       <mesh ref={conrodRef} castShadow>
         <cylinderGeometry args={[0.028, 0.022, 1.05, 8]} />
-        <meshStandardMaterial color="#162030" metalness={0.96} roughness={0.08} />
+        <meshStandardMaterial color="#2a4455" metalness={0.88} roughness={0.12} />
       </mesh>
 
       {/* Crankpin */}
@@ -137,7 +137,7 @@ function Crankshaft({ cylinders }) {
       {/* Main shaft */}
       <mesh rotation-z={Math.PI / 2} castShadow>
         <cylinderGeometry args={[0.045, 0.045, cylinders * 0.72 + 0.2, 16]} />
-        <meshStandardMaterial color="#0d1a25" metalness={0.97} roughness={0.06} />
+        <meshStandardMaterial color="#3a6070" metalness={0.88} roughness={0.1} />
       </mesh>
       {/* Main journals */}
       {Array.from({ length: cylinders + 1 }).map((_, i) => (
@@ -180,11 +180,12 @@ export default function PistonEngine({ cylinders = 6 }) {
       <OrbitControls enablePan={false} minDistance={3} maxDistance={12} enableDamping dampingFactor={0.05} />
       <Environment preset="warehouse" />
 
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[4, 6, 4]}   intensity={1.5} color="#ffffff" castShadow />
-      <directionalLight position={[-4, -3, -4]} intensity={0.3} color="#003355" />
-      <pointLight       position={[0, 2, 0]}    intensity={1.0} color="#00d4ff" distance={6} />
-      <pointLight       position={[0, -1, 1]}   intensity={0.5} color="#ff4400" distance={4} />
+      <ambientLight intensity={1.2} />
+      <directionalLight position={[4, 6, 4]}   intensity={3.0} color="#ffffff" castShadow />
+      <directionalLight position={[-4, 4, 2]}   intensity={1.5} color="#aaccff" />
+      <directionalLight position={[-4, -3, -4]} intensity={0.6} color="#003355" />
+      <pointLight       position={[0, 2, 0]}    intensity={2.0} color="#00d4ff" distance={8} />
+      <pointLight       position={[0, -1, 1]}   intensity={1.0} color="#ff6600" distance={5} />
 
       <group position-y={0.2}>
         {Array.from({ length: cylinders }).map((_, i) => (
@@ -201,7 +202,7 @@ export default function PistonEngine({ cylinders = 6 }) {
         {/* Engine block base */}
         <mesh position-y={0} castShadow>
           <boxGeometry args={[cylinders * 0.72 + 0.35, 0.12, 0.58]} />
-          <meshStandardMaterial color="#0a1520" metalness={0.95} roughness={0.12} />
+          <meshStandardMaterial color="#1e3545" metalness={0.88} roughness={0.18} />
         </mesh>
       </group>
 
