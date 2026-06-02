@@ -15,23 +15,65 @@ const SERVICES = [
   'Other',
 ]
 
-export default function Contact() {
-  const [form, setForm]     = useState({ name: '', email: '', company: '', service: '', message: '' })
-  const [sent, setSent]     = useState(false)
-  const [focused, setFocused] = useState(null)
+const FORMSPREE_ENDPOINT = 'https://formsubmit.co/ajax/canberkyildiz1@gmail.com'
 
-  const handleSubmit = (e) => {
+function validate(form) {
+  const errors = {}
+  if (!form.name.trim())    errors.name    = 'Name is required'
+  if (!form.email.trim())   errors.email   = 'Email is required'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    errors.email = 'Invalid email address'
+  if (!form.message.trim()) errors.message = 'Project brief is required'
+  return errors
+}
+
+export default function Contact() {
+  const [form, setForm]       = useState({ name: '', email: '', company: '', service: '', message: '' })
+  const [errors, setErrors]   = useState({})
+  const [focused, setFocused] = useState(null)
+  const [status, setStatus]   = useState('idle') // idle | sending | sent | error
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
+    const errs = validate(form)
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    setErrors({})
+    setStatus('sending')
+
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          name:     form.name,
+          email:    form.email,
+          company:  form.company || '—',
+          service:  form.service || 'Not specified',
+          message:  form.message,
+          _subject: `APEX Engineering Inquiry — ${form.service || 'General'}`,
+        }),
+      })
+      if (res.ok) {
+        setStatus('sent')
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    }
   }
 
-  const Field = ({ id, label, type = 'text', placeholder, as: As = 'input', children }) => (
+  const Field = ({ id, label, type = 'text', placeholder, as: As = 'input', required }) => (
     <div className="relative">
       <label className="font-mono text-[9px] text-accent-cyan/50 tracking-widest block mb-2">
         {label}
       </label>
       <div className={`relative border transition-all ${
-        focused === id ? 'border-accent-cyan/60' : 'border-accent-cyan/15'
+        errors[id]
+          ? 'border-red-500/60'
+          : focused === id
+          ? 'border-accent-cyan/60'
+          : 'border-accent-cyan/15'
       }`}>
         {As === 'input' ? (
           <input
@@ -39,7 +81,7 @@ export default function Contact() {
             type={type}
             placeholder={placeholder}
             value={form[id]}
-            onChange={(e) => setForm({ ...form, [id]: e.target.value })}
+            onChange={(e) => { setForm({ ...form, [id]: e.target.value }); setErrors({ ...errors, [id]: '' }) }}
             onFocus={() => setFocused(id)}
             onBlur={() => setFocused(null)}
             className="w-full bg-steel-900/50 px-4 py-3 text-sm text-white placeholder-accent-silver/20 font-sans outline-none"
@@ -50,21 +92,22 @@ export default function Contact() {
             rows={5}
             placeholder={placeholder}
             value={form[id]}
-            onChange={(e) => setForm({ ...form, [id]: e.target.value })}
+            onChange={(e) => { setForm({ ...form, [id]: e.target.value }); setErrors({ ...errors, [id]: '' }) }}
             onFocus={() => setFocused(id)}
             onBlur={() => setFocused(null)}
             className="w-full bg-steel-900/50 px-4 py-3 text-sm text-white placeholder-accent-silver/20 font-sans outline-none resize-none"
           />
         )}
-        {/* Corner accents */}
-        {focused === id && (
+        {focused === id && !errors[id] && (
           <>
             <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-accent-cyan pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-accent-cyan pointer-events-none" />
           </>
         )}
       </div>
-      {children}
+      {errors[id] && (
+        <p className="font-mono text-[9px] text-red-400/80 mt-1 tracking-wider">{errors[id]}</p>
+      )}
     </div>
   )
 
@@ -86,7 +129,7 @@ export default function Contact() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-5 gap-16">
           {/* Form */}
           <div className="lg:col-span-3">
-            {sent ? (
+            {status === 'sent' ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -103,13 +146,29 @@ export default function Contact() {
                 <div className="mt-6 font-mono text-xs text-accent-silver/30">
                   REF: APEX-{Date.now().toString().slice(-8)}
                 </div>
+                <button
+                  onClick={() => { setStatus('idle'); setForm({ name: '', email: '', company: '', service: '', message: '' }) }}
+                  className="mt-8 clip-corner-sm px-6 py-2.5 border border-accent-cyan/30 text-accent-cyan font-mono text-xs tracking-widest hover:bg-accent-cyan/10 transition-all"
+                >
+                  SEND ANOTHER
+                </button>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                {status === 'error' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 border border-red-500/30 bg-red-500/5 font-mono text-xs text-red-400/80"
+                  >
+                    TRANSMISSION FAILED — Please check your connection and try again.
+                  </motion.div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Field id="name"    label="FULL NAME *"    placeholder="Dr. John Smith"   />
-                  <Field id="email"   label="EMAIL ADDRESS *" placeholder="j.smith@company.com" type="email" />
-                  <Field id="company" label="COMPANY / ORG"  placeholder="Aerospace Corp Ltd" />
+                  <Field id="name"    label="FULL NAME *"     placeholder="Dr. John Smith"       required />
+                  <Field id="email"   label="EMAIL ADDRESS *" placeholder="j.smith@company.com"  type="email" required />
+                  <Field id="company" label="COMPANY / ORG"   placeholder="Aerospace Corp Ltd" />
 
                   {/* Service selector */}
                   <div>
@@ -138,6 +197,7 @@ export default function Contact() {
                   label="PROJECT BRIEF *"
                   placeholder="Describe your project requirements, timeline, applicable standards, and any specific technical constraints..."
                   as="textarea"
+                  required
                 />
 
                 {/* NDA note */}
@@ -154,9 +214,21 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className="w-full clip-corner py-4 bg-accent-cyan text-steel-950 font-display font-700 tracking-[0.2em] text-sm hover:bg-white transition-colors"
+                  disabled={status === 'sending'}
+                  className="w-full clip-corner py-4 bg-accent-cyan text-steel-950 font-display font-700 tracking-[0.2em] text-sm hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
-                  TRANSMIT INQUIRY
+                  {status === 'sending' ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                        className="w-4 h-4 border-2 border-steel-950/40 border-t-steel-950 rounded-full"
+                      />
+                      TRANSMITTING...
+                    </>
+                  ) : (
+                    'TRANSMIT INQUIRY'
+                  )}
                 </button>
               </form>
             )}
@@ -207,10 +279,10 @@ export default function Contact() {
               <div className="font-mono text-[9px] text-accent-cyan/50 tracking-widest mb-4">SYSTEM STATUS</div>
               <div className="space-y-3">
                 {[
-                  { label: 'Engineering Team',   status: 'AVAILABLE',  ok: true },
-                  { label: 'Test Facility',       status: 'OPERATIONAL', ok: true },
-                  { label: 'NDA Processing',      status: 'ACTIVE',     ok: true },
-                  { label: 'Secure Comms',        status: 'ONLINE',     ok: true },
+                  { label: 'Engineering Team',  status: 'AVAILABLE',   ok: true },
+                  { label: 'Test Facility',      status: 'OPERATIONAL', ok: true },
+                  { label: 'NDA Processing',     status: 'ACTIVE',      ok: true },
+                  { label: 'Secure Comms',       status: 'ONLINE',      ok: true },
                 ].map(({ label, status, ok }) => (
                   <div key={label} className="flex items-center justify-between">
                     <span className="font-mono text-[10px] text-accent-silver/50">{label}</span>

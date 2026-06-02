@@ -1,4 +1,4 @@
-import { Suspense, useState, useRef, useEffect } from 'react'
+import { Suspense, useState, useRef, useEffect, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -8,6 +8,7 @@ import TechBadge from '../components/ui/TechBadge'
 import SectionHeader from '../components/ui/SectionHeader'
 import StatCounter from '../components/ui/StatCounter'
 import TurbofanEngine from '../components/3d/TurbofanEngine'
+import ModelLoader from '../components/3d/ModelLoader'
 
 // ── Typing effect ─────────────────────────────────────────────────────────────
 const PHRASES = ['AEROSPACE', 'DEFENSE', 'AUTOMOTIVE', 'PRECISION']
@@ -54,23 +55,28 @@ function HUDCorner({ className }) {
 
 // ── Particle field ─────────────────────────────────────────────────────────────
 function ParticleField() {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        left: `${(i * 37.3 + 11) % 100}%`,
+        top:  `${(i * 61.7 + 23) % 100}%`,
+        opacity: 0.1 + (i % 5) * 0.1,
+        duration: 2 + (i % 4),
+        delay: (i % 6) * 0.5,
+      })),
+    []
+  )
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 30 }).map((_, i) => (
+      {particles.map((p) => (
         <motion.div
-          key={i}
+          key={p.id}
           className="absolute w-px h-px bg-accent-cyan rounded-full"
-          style={{
-            left:   `${Math.random() * 100}%`,
-            top:    `${Math.random() * 100}%`,
-            opacity: Math.random() * 0.5 + 0.1,
-          }}
+          style={{ left: p.left, top: p.top, opacity: p.opacity }}
           animate={{ opacity: [0.1, 0.6, 0.1], scale: [1, 1.5, 1] }}
-          transition={{
-            duration: 2 + Math.random() * 4,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-          }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
         />
       ))}
     </div>
@@ -122,7 +128,7 @@ export default function Home() {
 
         <motion.div
           style={{ opacity: heroOpacity, y: heroY }}
-          className="relative z-10 max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center py-20"
+          className="relative z-10 max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center py-16 lg:py-20"
         >
           {/* Left: text */}
           <div>
@@ -143,7 +149,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display font-900 text-5xl md:text-6xl xl:text-7xl leading-none tracking-tight mb-2"
+              className="font-display font-900 text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-none tracking-tight mb-2"
             >
               ENGINEERING
             </motion.h1>
@@ -151,7 +157,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display font-900 text-5xl md:text-6xl xl:text-7xl leading-none tracking-tight mb-2"
+              className="font-display font-900 text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-none tracking-tight mb-2"
             >
               FOR
             </motion.h1>
@@ -159,7 +165,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display font-900 text-5xl md:text-6xl xl:text-7xl leading-none tracking-tight mb-8"
+              className="font-display font-900 text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-none tracking-tight mb-6"
             >
               <TypingText />
             </motion.h1>
@@ -199,7 +205,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
-              className="mt-12 space-y-0 max-w-xs"
+              className="hidden sm:block mt-10 space-y-0 max-w-xs"
             >
               <SpecPanel label="MAX THRUST"       value="28,000"  unit="lbf"  progress={85} />
               <SpecPanel label="TURBINE INLET TEMP" value="1,650" unit="°C"   progress={72} />
@@ -229,7 +235,7 @@ export default function Home() {
                   dpr={[1, 2]}
                   gl={{ antialias: true, toneMapping: 4, toneMappingExposure: 1.2 }}
                 >
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<ModelLoader />}>
                     <TurbofanEngine exploded={exploded} />
                   </Suspense>
                 </Canvas>
@@ -252,20 +258,20 @@ export default function Home() {
                   SCROLL TO ZOOM
                 </div>
               </div>
+            </div>
 
-              {/* Explode button */}
-              <div className="absolute -bottom-14 left-0 right-0 flex justify-center">
-                <button
-                  onClick={() => setExploded(!exploded)}
-                  className={`clip-corner-sm px-6 py-2.5 font-display font-600 text-xs tracking-[0.2em] transition-all ${
-                    exploded
-                      ? 'bg-accent-orange/20 border border-accent-orange/50 text-accent-orange hover:bg-accent-orange/30'
-                      : 'bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan/20'
-                  }`}
-                >
-                  {exploded ? '⟵ ASSEMBLE' : 'EXPLODE VIEW ⟶'}
-                </button>
-              </div>
+            {/* Explode button — in flow so it doesn't overlap on mobile */}
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => setExploded(!exploded)}
+                className={`clip-corner-sm px-6 py-2.5 font-display font-600 text-xs tracking-[0.2em] transition-all ${
+                  exploded
+                    ? 'bg-accent-orange/20 border border-accent-orange/50 text-accent-orange hover:bg-accent-orange/30'
+                    : 'bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan/20'
+                }`}
+              >
+                {exploded ? '⟵ ASSEMBLE' : 'EXPLODE VIEW ⟶'}
+              </button>
             </div>
 
             {/* Side specs */}
@@ -286,7 +292,7 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2"
         >
           <span className="font-mono text-[9px] text-accent-silver/30 tracking-widest">SCROLL</span>
           <motion.div
@@ -308,8 +314,8 @@ export default function Home() {
               { label: 'CERTIFICATIONS',      end: 24,    suffix: '' },
               { label: 'COUNTRIES SERVED',    end: 38,    suffix: '' },
             ].map(({ label, end, suffix }) => (
-              <div key={label} className="bg-steel-950 p-8 text-center">
-                <div className="font-display font-800 text-5xl text-white mb-2 glow-cyan">
+              <div key={label} className="bg-steel-950 p-5 md:p-8 text-center">
+                <div className="font-display font-800 text-4xl md:text-5xl text-white mb-2 glow-cyan">
                   <StatCounter end={end} suffix={suffix} />
                 </div>
                 <div className="font-mono text-[10px] text-accent-silver/40 tracking-[0.2em]">{label}</div>

@@ -6,6 +6,7 @@ import BlueprintGrid from '../components/ui/BlueprintGrid'
 import SectionHeader from '../components/ui/SectionHeader'
 import StatCounter from '../components/ui/StatCounter'
 import GearAssembly from '../components/3d/GearAssembly'
+import ModelLoader from '../components/3d/ModelLoader'
 
 const timeline = [
   { year: '2014', title: 'Founded',                desc: 'Started as a small aerospace consulting firm with 3 senior engineers and a vision for precision manufacturing.' },
@@ -43,7 +44,7 @@ export default function About() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display font-900 text-6xl md:text-8xl leading-none tracking-tight"
+            className="font-display font-900 text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight"
           >
             BUILT BY<br /><span className="text-gradient-cyan">ENGINEERS,</span><br />FOR ENGINEERS.
           </motion.h1>
@@ -80,7 +81,7 @@ export default function About() {
           <div className="relative aspect-square max-w-lg mx-auto">
             <div className="absolute inset-0 rounded-full bg-accent-cyan/3 blur-3xl" />
             <Canvas camera={{ position: [0, 0, 6], fov: 50 }} dpr={[1, 2]} gl={{ antialias: true, toneMapping: 4, toneMappingExposure: 1.2 }}>
-              <Suspense fallback={null}>
+              <Suspense fallback={<ModelLoader />}>
                 <GearAssembly />
               </Suspense>
             </Canvas>

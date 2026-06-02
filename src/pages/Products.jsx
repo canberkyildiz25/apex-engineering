@@ -8,6 +8,7 @@ import TechBadge from '../components/ui/TechBadge'
 import TurbofanEngine from '../components/3d/TurbofanEngine'
 import PistonEngine from '../components/3d/PistonEngine'
 import GearAssembly from '../components/3d/GearAssembly'
+import ModelLoader from '../components/3d/ModelLoader'
 
 const PRODUCTS = [
   {
@@ -182,7 +183,7 @@ export default function Products() {
                       dpr={[1, 2]}
                       gl={{ antialias: true, toneMapping: 4, toneMappingExposure: 1.2 }}
                     >
-                      <Suspense fallback={null}>
+                      <Suspense fallback={<ModelLoader />}>
                         <Model3D type={selected.model} exploded={exploded} />
                       </Suspense>
                     </Canvas>
